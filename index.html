@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jokes on You — Screenshot Gallery</title>
+
+<!-- Mansalva font from Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0f1724;
+    --card: #111827;
+    --muted: #9ca3af;
+    --gap: 1rem;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial;
+    background: linear-gradient(180deg,#0b1220 0%, #071019 100%);
+    color: #e6eef8;
+  }
+
+  header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  h1 {
+    font-family: 'Mansalva', cursive;
+    font-size: 3rem;
+    margin: 0;
+    color: #fefefe;
+    text-align: center;
+  }
+
+  .gallery-wrap { padding: 1rem; }
+  .gallery {
+    column-gap: var(--gap);
+    column-fill: balance;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  @media (min-width:1400px){ .gallery{column-count:4} }
+  @media (min-width:1000px) and (max-width:1399px){ .gallery{column-count:3} }
+  @media (min-width:700px) and (max-width:999px){ .gallery{column-count:2} }
+  @media (max-width:699px){ .gallery{column-count:1} }
+
+  .item {
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 var(--gap);
+    break-inside: avoid;
+    background: var(--card);
+    padding: .35rem;
+    border-radius: 10px;
+  }
+  .item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(2,6,23,.6);
+  }
+  .item p {
+    margin: .5rem 0 0;
+    font-size: .95rem;
+    color: var(--muted);
+  }
+
+  .upload-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    color: #000;
+  }
+  .upload-box input, .upload-box textarea {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: .5rem;
+    font-size: 1rem;
+    width: 100%;
+  }
+  .upload-box button {
+    align-self: flex-end;
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background-color: #0f1724;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Jokes on You</h1>
+</header>
+
+<main class="gallery-wrap">
+  <div class="gallery" id="gallery"></div>
+
+  <div class="upload-box">
+    <input type="file" id="fileInput" accept="image/*">
+    <textarea id="descInput" rows="2" placeholder="Enter description..."></textarea>
+    <button onclick="upload()">Upload</button>
+  </div>
+</main>
+
+<script>
+const folderUrl = "https://script.google.com/macros/s/AKfycbz4gmnCWTFyS19am8b3yl_JJW2ry8kBdUS3eiYkwE90CZOPixvNOy0Aw0xLMsBna_qiQg/exec"; // <-- Replace with your Google Apps Script Web App URL
+
+async function upload() {
+  const fileInput = document.getElementById("fileInput");
+  const descInput = document.getElementById("descInput");
+
+  if (!fileInput.files[0]) return alert("Please select an image.");
+
+  const file = fileInput.files[0];
+  const desc = descInput.value;
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+
+    try {
+      const res = await fetch(folderUrl, {
+        method: "POST",
+        body: new URLSearchParams({ file: base64, desc: desc })
+      });
+      const link = await res.text();
+
+      // Create new card
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `<img src="${link}" alt="screenshot"><p>${desc}</p>`;
+      document.getElementById("gallery").prepend(div);
+
+      // Reset inputs
+      fileInput.value = "";
+      descInput.value = "";
+
+    } catch(err) {
+      console.error(err);
+      alert("Upload failed.");
+    }
+  }
+  reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
